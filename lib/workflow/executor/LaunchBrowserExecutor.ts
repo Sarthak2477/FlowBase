@@ -1,8 +1,7 @@
 import puppeteer, { type Browser } from "puppeteer";
 import { type Browser as BrowserCore } from "puppeteer-core";
 const puppeteerCore = require("puppeteer-core");
-// const chromium = require("@sparticuz/chromium-min");
-import chromium from "@sparticuz/chromium-min";
+import chromium from "@sparticuz/chromium";
 import { ExecutionEnvironment } from "@/types/executor";
 import { LaunchBrowserTask } from "../task/LaunchBrowser";
 
@@ -21,25 +20,14 @@ export async function LaunchBrowserExecutor(
       process.env.NODE_ENV === "production" ||
       process.env.VERCEL_ENV === "production"
     ) {
-      console.log("Launching in production mode...");
-      // Updated production configuration
-      const executionPath =
-        "https://github.com/Sparticuz/chromium/releases/download/v123.0.1/chromium-v123.0.1-pack.tar";
-
-      // "https://github.com/Sparticuz/chromium/releases/download/v119.0.2/chromium-v119.0.2-pack.tar"
-      // "/opt/nodejs/node_modules/@sparticuz/chromium/bin"
+      console.log("Launching in production mode with @sparticuz/chromium...");
+      // Optional font loading to avoid font rendering glitches on headless Linux
+      // await chromium.font("https://raw.githack.com/googlei18n/noto-emoji/master/fonts/NotoColorEmoji.ttf");
 
       browser = await puppeteerCore.launch({
-        executablePath: await chromium.executablePath(executionPath),
-        args: [
-          ...chromium.args,
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--hide-scrollbars",
-          "--disable-web-security",
-        ],
+        args: chromium.args,
         defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
         headless: chromium.headless,
         // @ts-ignore
         ignoreHTTPSErrors: true,

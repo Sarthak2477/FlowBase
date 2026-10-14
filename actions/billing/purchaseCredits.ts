@@ -23,10 +23,21 @@ export const PurchaseCredits = async (packId: PackId) => {
     },
     // payment_method_types: ["card"],
     line_items: [
-      {
-        price: priceId,
-        quantity: 1,
-      },
+      priceId
+        ? {
+            price: priceId,
+            quantity: 1,
+          }
+        : {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: selectedPack.name,
+              },
+              unit_amount: selectedPack.price,
+            },
+            quantity: 1,
+          },
     ],
     metadata: {
       userId,

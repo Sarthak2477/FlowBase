@@ -297,6 +297,10 @@ GROQ_API_KEY=gsk_your-groq-api-key
 RESEND_API_KEY=re_your-resend-api-key
 ```
 
+Stripe Price IDs are optional. If `STRIPE_SMALL_PACK_PRICE_ID`,
+`STRIPE_MEDIUM_PACK_PRICE_ID`, or `STRIPE_LARGE_PACK_PRICE_ID` are not set,
+checkout creates one-time prices from the credit pack amounts in the application.
+
 ### Optional Variables
 ```env
 NEXT_PUBLIC_ENABLE_LOCAL_CRON=true
