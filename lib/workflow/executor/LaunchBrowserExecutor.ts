@@ -1,7 +1,6 @@
 import puppeteer, { type Browser } from "puppeteer";
 import { type Browser as BrowserCore } from "puppeteer-core";
 const puppeteerCore = require("puppeteer-core");
-import chromium from "@sparticuz/chromium";
 import { ExecutionEnvironment } from "@/types/executor";
 import { LaunchBrowserTask } from "../task/LaunchBrowser";
 
@@ -21,8 +20,7 @@ export async function LaunchBrowserExecutor(
       process.env.VERCEL_ENV === "production"
     ) {
       console.log("Launching in production mode with @sparticuz/chromium...");
-      // Optional font loading to avoid font rendering glitches on headless Linux
-      // await chromium.font("https://raw.githack.com/googlei18n/noto-emoji/master/fonts/NotoColorEmoji.ttf");
+      const chromium = (await import("@sparticuz/chromium")).default;
 
       browser = await puppeteerCore.launch({
         args: chromium.args,
