@@ -438,5 +438,3 @@ npm run start          # Start production server
 ---
 
 **License**: MIT License  
-**Maintainer**: Harmik Lathiya
-**Support**: [Create an issue](https://github.com/Lathiya50/scrape-flow/issues)
