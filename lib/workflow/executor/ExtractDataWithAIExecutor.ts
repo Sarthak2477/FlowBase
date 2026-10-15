@@ -38,7 +38,7 @@ export async function ExtractDataWithAIExecutor(
     const groq = new Groq({ apiKey });
 
     const response = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",

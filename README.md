@@ -155,6 +155,123 @@ npm run dev
 
 ## Architecture
 
+### System Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph ClientLayer["🖥️ Frontend / Presentation Layer (Next.js 14)"]
+        UI["Dashboard & Analytics (Shadcn + Radix + Tailwind)"]
+        Canvas["Visual Workflow Builder (@xyflow/react)"]
+        Validation["Client Flow & Type Validator"]
+        State["State Management (TanStack Query v5)"]
+    end
+
+    subgraph AuthSecurity["🔐 Identity & Security"]
+        Clerk["Clerk Authentication & Session Guard"]
+        CryptoVault["AES-256-CBC Credential Encryption Engine"]
+    end
+
+    subgraph AppServer["⚙️ Core Application Server (Next.js App Router)"]
+        ServerActions["Server Actions & API Route Handlers"]
+        Planner["Execution Planner (DAG / Topological Sort)"]
+        BalanceValidator["Credit Pre-checker & Reservation"]
+    end
+
+    subgraph ExecutionEngine["⚡ Workflow Orchestration Runtime"]
+        Runner["Phase Runner (lib/workflow/executionWorkflow.ts)"]
+        Context["Isolated Execution Environment (Browser / State / Logs)"]
+        TaskRegistry["Task & Executor Registries (22 Modular Tasks)"]
+    end
+
+    subgraph ServiceIntegrations["🔌 External Integrations & Workers"]
+        Puppeteer["Headless Chromium Browser (Puppeteer)"]
+        GroqLLM["Groq AI Inference (LLaMA Models)"]
+        EmailService["Resend / Nodemailer (SMTP)"]
+        Webhooks["Outgoing Webhooks (HTTP POST)"]
+        StripeGateway["Stripe Checkout & Webhook Listener"]
+    end
+
+    subgraph SchedulerSubsystem["⏰ Hybrid Scheduling System"]
+        VercelCron["Vercel Cron Trigger (Cloud Backup)"]
+        BrowserCron["Local Browser Heartbeat Daemon"]
+        CronParser["Cron Expression Evaluator (cron-parser)"]
+    end
+
+    subgraph StorageLayer["🗄️ Persistence Layer"]
+        PrismaORM["Prisma ORM Client"]
+        PostgresDB[("PostgreSQL Database (Neon Serverless)")]
+    end
+
+    %% User interactions
+    UI --> Clerk
+    Canvas --> Validation
+    Validation --> ServerActions
+    Clerk --> ServerActions
+
+    %% Server logic
+    ServerActions --> Planner
+    Planner --> BalanceValidator
+    BalanceValidator --> Runner
+
+    %% Runtime execution
+    Runner --> Context
+    Context --> TaskRegistry
+    TaskRegistry --> Puppeteer
+    TaskRegistry --> GroqLLM
+    TaskRegistry --> EmailService
+    TaskRegistry --> Webhooks
+    TaskRegistry --> CryptoVault
+
+    %% Scheduling & Payments
+    VercelCron --> ServerActions
+    BrowserCron --> ServerActions
+    ServerActions --> CronParser
+    StripeGateway --> ServerActions
+
+    %% Database interactions
+    CryptoVault --> PrismaORM
+    BalanceValidator --> PrismaORM
+    Runner --> PrismaORM
+    ServerActions --> PrismaORM
+    PrismaORM --> PostgresDB
+
+    classDef primary fill:#2563eb,stroke:#1e40af,color:#fff;
+    classDef secondary fill:#0f172a,stroke:#334155,color:#e2e8f0;
+    classDef accent fill:#059669,stroke:#047857,color:#fff;
+```
+
+### Execution Lifecycle & Data Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User / Scheduler
+    participant Editor as Workflow Canvas / UI
+    participant Planner as Execution Planner (DAG)
+    participant Engine as Workflow Execution Engine
+    participant DB as PostgreSQL (Prisma)
+    participant Ext as Headless Browser / Groq AI / Webhook
+
+    User->>Editor: Click "Execute Workflow" (or Cron Trigger)
+    Editor->>Planner: Pass Nodes & Edges Definition
+    Planner->>Planner: Validate Types, Cycles & Order Phases (Topological Sort)
+    Planner->>DB: Check balance & reserve credits
+    alt Insufficient Credits
+        DB-->>Editor: Abort with 402 Insufficient Balance
+    else Sufficient Credits
+        Planner->>Engine: Initialize Execution Phases (PENDING)
+        loop For each sequential Phase
+            Engine->>DB: Set Phase Status = RUNNING
+            Engine->>Ext: Execute Task (Navigate, Extract, AI Parse, Deliver)
+            Ext-->>Engine: Output Data & Phase Logs
+            Engine->>DB: Save outputs, logs, mark Phase COMPLETED
+            Engine->>Engine: Forward outputs to next Phase context
+        end
+        Engine->>DB: Finalize WorkflowExecution & Deduct Total Credits
+        DB-->>Editor: Return Complete Audit Trail & Outputs
+    end
+```
+
 ### Workflow Execution Engine
 The application features a sophisticated workflow execution engine that handles:
 - **Task Registry**: Dynamic loading and validation of all task types

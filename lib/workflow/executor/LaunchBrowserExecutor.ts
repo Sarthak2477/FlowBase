@@ -1,6 +1,5 @@
 import puppeteer, { type Browser } from "puppeteer";
 import { type Browser as BrowserCore } from "puppeteer-core";
-const puppeteerCore = require("puppeteer-core");
 import { ExecutionEnvironment } from "@/types/executor";
 import { LaunchBrowserTask } from "../task/LaunchBrowser";
 
@@ -10,36 +9,15 @@ export async function LaunchBrowserExecutor(
   try {
     const websiteUrl = environment.getInput("Website Url");
     let browser: Browser | BrowserCore;
-    console.log(
-      "@process..........",
-      process.env.NODE_ENV,
-      process.env.VERCEL_ENV
-    );
-    if (
-      process.env.NODE_ENV === "production" ||
-      process.env.VERCEL_ENV === "production"
-    ) {
-      console.log("Launching in production mode with @sparticuz/chromium...");
-      const chromium = (await import("@sparticuz/chromium")).default;
-
-      browser = await puppeteerCore.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-        // @ts-ignore
-        ignoreHTTPSErrors: true,
-      });
-    } else {
-      console.log("Launching in development mode...");
-      const localExecutablePath =
-        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
-      browser = await puppeteer.launch({
-        headless: true, //testing in headful modes
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        executablePath: localExecutablePath,
-      });
-    }
+    console.log("Launching browser with local puppeteer...");
+    const localExecutablePath =
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+      executablePath: localExecutablePath,
+    });
 
     environment.log.info("Browser launched successfully.");
     environment.setBrowser(browser);

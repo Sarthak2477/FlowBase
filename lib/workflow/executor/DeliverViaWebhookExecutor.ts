@@ -27,8 +27,13 @@ export async function DeliverViaWebhookExecutor(
       );
       return false;
     }
-    const resopnseBody = await resopnse.json();
-    environment.log.info(JSON.stringify(resopnseBody, null, 4));
+    const responseText = await resopnse.text();
+    try {
+      const resopnseBody = JSON.parse(responseText);
+      environment.log.info(JSON.stringify(resopnseBody, null, 4));
+    } catch {
+      environment.log.info(`Webhook response received: ${responseText}`);
+    }
     return true;
   } catch (e: any) {
     environment.log.error(e.message);
